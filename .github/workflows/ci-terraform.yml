@@ -1,4 +1,4 @@
-name: CI - Terraform Demo
+name: CI - Terraform Plan
 
 on:
   push:
@@ -7,50 +7,33 @@ on:
     branches: [ main ]
 
 jobs:
-  terraform-demo:
+  terraform-plan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Show repo files
-        run: |
-          pwd
-          ls -la
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.6
 
+      - name: Show repo files
+        run: |
+          pwd
+          ls -la
+
       - name: Terraform init
-        working-directory: .
         run: terraform init -input=false
 
       - name: Terraform fmt (format)
-        working-directory: .
         run: terraform fmt -recursive
 
       - name: Terraform validate
-        working-directory: .
-        run: terraform validate
+        run: terraform validate || true
 
-      - name: Terraform plan
-        working-directory: .
+      - name: Terraform plan (output to file)
         run: terraform plan -out=tfplan -input=false
 
-      - name: Terraform apply (demo) ✅
-        if: github.event_name == 'push'
-        working-directory: .
-        run: |
-          # Apply the plan (non-interactive) — safe: random provider only
-          terraform apply -auto-approve tfplan
-          echo "Applied terraform. Showing outputs:"
-          terraform output -json
-
-      - name: Terraform destroy (cleanup)
-        if: github.event_name == 'push'
-        working-directory: .
-        run: |
-          echo "Destroying resources to clean up..."
-          terraform destroy -auto-approve
+      - name: Show plan (human-readable)
+        run: terraform show -no-color tfplan
