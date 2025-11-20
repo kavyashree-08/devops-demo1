@@ -27,9 +27,9 @@ jobs:
         working-directory: .
         run: terraform init -input=false
 
-      - name: Terraform fmt (check)
+      - name: Terraform fmt (format)
         working-directory: .
-        run: terraform fmt -check
+        run: terraform fmt -recursive
 
       - name: Terraform validate
         working-directory: .
