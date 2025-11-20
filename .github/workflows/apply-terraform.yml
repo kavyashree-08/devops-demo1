@@ -1,0 +1,56 @@
+name: Manual - Terraform Apply & Destroy
+
+# Manual trigger only (you run this from Actions → Run workflow)
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'apply or destroy'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
+
+jobs:
+  terraform-apply:
+    if: ${{ github.event.inputs.action == 'apply' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.6
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform apply (manual)
+        run: |
+          terraform plan -out=tfplan -input=false
+          terraform apply -auto-approve tfplan
+          echo "Outputs:"
+          terraform output -no-color || true
+
+  terraform-destroy:
+    if: ${{ github.event.inputs.action == 'destroy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.6
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform destroy (manual)
+        run: |
+          terraform destroy -auto-approve || true
